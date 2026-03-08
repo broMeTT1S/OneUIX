@@ -1,0 +1,164 @@
+package io.github.soclear.oneuix.hook
+
+import android.view.View
+import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import de.robv.android.xposed.XC_MethodHook
+import de.robv.android.xposed.XC_MethodReplacement
+import de.robv.android.xposed.XposedBridge
+import de.robv.android.xposed.XposedHelpers.callMethod
+import de.robv.android.xposed.XposedHelpers.findAndHookMethod
+import de.robv.android.xposed.XposedHelpers.findClass
+import de.robv.android.xposed.XposedHelpers.getObjectField
+import de.robv.android.xposed.XposedHelpers.setObjectField
+import de.robv.android.xposed.XposedHelpers.setStaticObjectField
+import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
+import io.github.soclear.oneuix.data.Package
+import kotlin.math.roundToInt
+
+object Browser {
+    fun showMorePlaybackSpeeds(lpparam: LoadPackageParam) {
+        if (lpparam.packageName != Package.BROWSER) {
+            return
+        }
+        try {
+            val playbackRateViewClass = findClass(
+                "${Package.BROWSER}.media.player.fullscreen.view.MPFullScreenPlaybackRateView",
+                lpparam.classLoader
+            )
+            val sPlaybackRates = doubleArrayOf(
+                0.25, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 3.0, 4.0
+            )
+            findAndHookMethod(
+                playbackRateViewClass,
+                "init",
+                LinearLayout::class.java,
+                object : XC_MethodHook() {
+
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        try {
+                            setPlaybackRates()
+                            setPlaybackRateViewWidth(param)
+                            addMoreSpeeds(param)
+                        } catch (t: Throwable) {
+                            XposedBridge.log(t)
+                        }
+                    }
+
+                    fun setPlaybackRates() = setStaticObjectField(
+                        playbackRateViewClass, "sPlaybackRates", sPlaybackRates
+                    )
+
+                    fun addMoreSpeeds(param: MethodHookParam) {
+                        val radioGroup = getObjectField(
+                            param.thisObject,
+                            "mPlaybackSpeedRadioGroup"
+                        ) as RadioGroup
+                        val radioButton = radioGroup.getChildAt(0) as RadioButton
+                        radioGroup.addView(createRadioButton("3.0", radioButton))
+                        radioGroup.addView(createRadioButton("4.0", radioButton))
+                    }
+
+                    fun createRadioButton(text: String, template: RadioButton): RadioButton {
+                        return RadioButton(template.context).apply {
+                            id = View.generateViewId()
+                            this.text = text
+                            textSize = 12f
+                            setTextColor(template.currentTextColor)
+                            buttonDrawable = template.buttonDrawable
+                            textAlignment = View.TEXT_ALIGNMENT_CENTER
+                            typeface = template.typeface
+                            setPadding(0, 0, 0, 0)
+                            layoutParams = RadioGroup.LayoutParams(template.layoutParams).apply {
+                                weight = 1f
+                                setMargins(0, 0, 0, 0)
+                            }
+                        }
+                    }
+
+                    fun setPlaybackRateViewWidth(param: MethodHookParam) {
+                        val view = getObjectField(
+                            param.thisObject,
+                            "mPlaybackRateView"
+                        ) as LinearLayout
+
+                        val density = view.resources.displayMetrics.density
+                        view.layoutParams = view.layoutParams.apply {
+                            width = (380 * density).roundToInt()
+                        }
+                    }
+                }
+            )
+
+
+            findAndHookMethod(
+                playbackRateViewClass,
+                "setInitialSpeed",
+                object : XC_MethodReplacement() {
+                    override fun replaceHookedMethod(param: MethodHookParam): Any? {
+                        try {
+                            val mController = getObjectField(param.thisObject, "mController")
+                            val speed = callMethod(mController, "getPlaybackRate") as Double
+                            val index = sPlaybackRates.indexOfFirst { it == speed }
+                            val radioGroup = getObjectField(
+                                param.thisObject, "mPlaybackSpeedRadioGroup"
+                            ) as RadioGroup
+                            val radioButton = radioGroup.getChildAt(index) as RadioButton
+                            callMethod(mController, "setPlaybackRate", speed)
+                            setObjectField(param.thisObject, "mCurrentSpeed", radioButton)
+                            radioButton.isChecked = true
+                            callMethod(
+                                param.thisObject,
+                                "highlightSelectedSpeedButton",
+                                radioButton
+                            )
+                        } catch (t: Throwable) {
+                            XposedBridge.log(t)
+                        }
+                        return null
+                    }
+                }
+            )
+        } catch (t: Throwable) {
+            XposedBridge.log(t)
+        }
+    }
+
+    fun setCountryIsoCode(loadPackageParam: LoadPackageParam, code: String) {
+        if (loadPackageParam.packageName != Package.BROWSER) return
+        try {
+            findAndHookMethod(
+                "com.sec.android.app.sbrowser.common.application.AppInfo",
+                loadPackageParam.classLoader,
+                "isCnApk",
+                XC_MethodReplacement.returnConstant(code == "CN")
+            )
+
+            val callback = XC_MethodReplacement.returnConstant(code)
+
+            findAndHookMethod(
+                "com.sec.android.app.sbrowser.common.device.CountryUtil",
+                loadPackageParam.classLoader,
+                "getCountryIsoCode",
+                callback
+            )
+
+            findAndHookMethod(
+                "com.sec.android.app.sbrowser.common.device.SystemProperties",
+                loadPackageParam.classLoader,
+                "getCountryCodeintoLocaleForGED",
+                callback
+            )
+
+            findAndHookMethod(
+                "com.sec.android.app.sbrowser.common.device.SystemProperties",
+                loadPackageParam.classLoader,
+                "getCscCountryIsoCode",
+                callback
+            )
+        } catch (t: Throwable) {
+            XposedBridge.log(t)
+        }
+    }
+}

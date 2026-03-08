@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 1. The "O" from One UI (背景的渐变发光圆环) -->
+    <!-- 这里的渐变是对角线 (34,34 到 74,74)，因为是一个圆，光从左上角打下来 -->
+    <path
+        android:pathData="M 54,34 a 20,20 0 1,0 0,40 a 20,20 0 1,0 0,-40 z"
+        android:strokeWidth="4"
+        android:strokeLineCap="round">
+        <aapt:attr name="android:strokeColor">
+            <gradient
+                android:startX="34"
+                android:startY="34"
+                android:endX="74"
+                android:endY="74"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#99FFFFFF" /> <!-- 更亮的高光 -->
+                <item android:offset="0.5" android:color="#40FFFFFF" /> <!-- 柔和过渡 -->
+                <item android:offset="1.0" android:color="#00FFFFFF" /> <!-- 完全融入背景 -->
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- 2. The "X" 左斜杠 ( \ ) - 鲜活绿洲 -->
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:rotation="-45">
+        <path android:pathData="M 47,33 a 7,7 0 0 1 14,0 l 0,42 a 7,7 0 0 1 -14,0 z">
+            <aapt:attr name="android:fillColor">
+                <!-- 优化坐标：X都设为中心点54，Y从顶部26到底部82。颜色将完美顺着斜杠流动 -->
+                <gradient
+                    android:startX="54"
+                    android:startY="26"
+                    android:endX="54"
+                    android:endY="82"
+                    android:type="linear">
+                    <item android:offset="0.0" android:color="#A3E635" /> <!-- 顶端：嫩草绿 -->
+                    <item android:offset="0.5" android:color="#10B981" /> <!-- 中间：薄荷翡翠 -->
+                    <item android:offset="1.0" android:color="#0891B2" /> <!-- 底部：深海青 -->
+                </gradient>
+            </aapt:attr>
+        </path>
+    </group>
+
+    <!-- 3. The "X" 右斜杠 ( / ) - 白色现代药丸，去阴影极简版 -->
+    <group
+        android:pivotX="54"
+        android:pivotY="54"
+        android:rotation="45">
+
+        <!-- 上层白色实体 -->
+        <path android:pathData="M 47,33 a 7,7 0 0 1 14,0 l 0,42 a 7,7 0 0 1 -14,0 z">
+            <aapt:attr name="android:fillColor">
+                <!-- 优化坐标：同理，让白灰渐变顺着斜杠流动，模拟光照 -->
+                <gradient
+                    android:startX="54"
+                    android:startY="26"
+                    android:endX="54"
+                    android:endY="82"
+                    android:type="linear">
+                    <item android:offset="0.0" android:color="#FFFFFF" />
+                    <item android:offset="1.0" android:color="#D1D5DB" /> <!-- 极浅的银灰色增加立体感 -->
+                </gradient>
+            </aapt:attr>
+        </path>
+    </group>
+</vector>

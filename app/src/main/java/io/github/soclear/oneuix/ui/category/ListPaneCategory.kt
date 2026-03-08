@@ -1,0 +1,45 @@
+package io.github.soclear.oneuix.ui.category
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+@Composable
+fun ListPaneCategory(
+    categoryAppInfoList: List<CategoryAppInfo>,
+    onItemClick: (Category) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.verticalScroll(rememberScrollState())
+    ) {
+        categoryAppInfoList.forEach {
+            ListItem(
+                headlineContent = {
+                    Text(text = it.label, fontSize = 20.sp)
+                },
+                modifier = Modifier.clickable {
+                    onItemClick(it.category)
+                },
+                leadingContent = {
+                    Image(
+                        bitmap = it.icon,
+                        contentDescription = it.label,
+                        modifier = Modifier.size(60.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+            )
+        }
+    }
+}
