@@ -172,7 +172,7 @@
 - Show Lunar calendar in QS panel
 - Modify Quick Settings panel clock text size
 
-##### Alaways On Display
+##### Always On Display
 
 - Hide AOD status bar
 - Show Chinese Lunar calendar on AOD/Lock screen
